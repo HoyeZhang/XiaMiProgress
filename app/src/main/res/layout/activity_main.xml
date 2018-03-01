@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:orientation="vertical"
+    android:id="@+id/ll"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:aj="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.a25216.xiamiprogress.MainActivity">
+<View
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:background="@color/colorAccent"
+    android:layout_marginBottom="20dp"/>
+    <com.example.a25216.xiamiprogress.view.TimeProgressView
+        android:id="@+id/tv_home1"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        aj:currentTime="20"
+        aj:totalTime="100"
+        app:textSize="10sp"
+        app:bgColor="@color/colorPrimaryDark"
+    />
+    <com.example.a25216.xiamiprogress.view.TimeProgressView
+        android:id="@+id/tv_home2"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        aj:currentTime="0"
+        aj:totalTime="200"
+        app:textSize="15sp"
+        app:bgColor="@color/colorPrimaryDark"
+        />
+    <com.example.a25216.xiamiprogress.view.TimeProgressView
+        android:id="@+id/tv_home3"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        aj:currentTime="100"
+        aj:totalTime="300"
+        app:textSize="20sp"
+        app:bgColor="@color/colorAccent"
+        />
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="进度条颜色" />
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="总时间" />
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="进度时间" />
+    <Button
+        android:id="@+id/button4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="背景颜色" />
+    <Button
+        android:id="@+id/button5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="字体颜色" />
+    <Button
+        android:id="@+id/button6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="暂停" />
+
+
+</LinearLayout>

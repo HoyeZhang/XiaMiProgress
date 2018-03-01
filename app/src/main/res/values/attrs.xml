@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="TimeProgressView" >
+        <attr name="totalTime" format="integer"/>
+        <attr name="currentTime" format="integer" />
+        <attr name="textSize"  format="dimension"/>
+        <attr name="textColor" format="color" />
+        <attr name="bgColor" format="color" />
+        <attr name="lineStartColor" format="color" />
+        <attr name="lineEndColor" format="color" />
+
+    </declare-styleable>
+</resources>
