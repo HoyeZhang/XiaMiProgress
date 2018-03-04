@@ -243,6 +243,7 @@ public class TimeProgressView extends View {
             }
         } else {
             if (mCurrentTime == mTotalTime){
+                setLoading(false);
                 requestLayout();
             }
             isDraw = false;

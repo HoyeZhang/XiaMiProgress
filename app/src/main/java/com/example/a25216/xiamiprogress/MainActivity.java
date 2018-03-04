@@ -9,6 +9,7 @@ import com.example.a25216.xiamiprogress.view.TimeProgressView;
 
 public class MainActivity extends AppCompatActivity {
     private Boolean isDraw = true;
+    private Boolean isLoading = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,16 +72,16 @@ public class MainActivity extends AppCompatActivity {
                 timeView1.setDraw(isDraw);
                 timeView2.setDraw(isDraw);
                 timeView3.setDraw(isDraw);
-                timeView3.setLoading(isDraw);
-
 
             }
         });
         findViewById(R.id.button7).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                isDraw = !isDraw;
-                timeView3.setLoading(isDraw);
+                isLoading = !isLoading;
+                timeView1.setLoading(isLoading);
+                timeView2.setLoading(isLoading);
+                timeView3.setLoading(isLoading);
 
 
             }
