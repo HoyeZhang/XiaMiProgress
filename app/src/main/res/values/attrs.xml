@@ -9,6 +9,7 @@
         <attr name="bgColor" format="color" />
         <attr name="lineStartColor" format="color" />
         <attr name="lineEndColor" format="color" />
+        <attr name="loadingColor" format="color" />
 
     </declare-styleable>
 </resources>

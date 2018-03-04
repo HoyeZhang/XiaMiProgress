@@ -71,6 +71,16 @@ public class MainActivity extends AppCompatActivity {
                 timeView1.setDraw(isDraw);
                 timeView2.setDraw(isDraw);
                 timeView3.setDraw(isDraw);
+                timeView3.setLoading(isDraw);
+
+
+            }
+        });
+        findViewById(R.id.button7).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isDraw = !isDraw;
+                timeView3.setLoading(isDraw);
 
 
             }

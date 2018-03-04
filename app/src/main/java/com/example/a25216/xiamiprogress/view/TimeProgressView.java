@@ -6,11 +6,13 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader;
+import android.graphics.SweepGradient;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
@@ -25,6 +27,7 @@ import com.example.a25216.xiamiprogress.R;
  */
 
 public class TimeProgressView extends View {
+
     /**
      * 总时间
      */
@@ -32,7 +35,7 @@ public class TimeProgressView extends View {
     /**
      * 目前时间
      */
-    private int mCurrentTime;
+    private float mCurrentTime;
     /**
      * 文本的颜色
      */
@@ -50,6 +53,19 @@ public class TimeProgressView extends View {
      */
     private int mLineEndColor;
     /**
+     * 加载控件颜色
+     */
+    private int  mLoadingColor;
+    /**
+     * 旋转角度
+     */
+    private float mRotate;
+    /**
+     * 旋转
+     */
+    private Matrix mMatrix = new Matrix();
+
+    /**
      * 文本的大小
      */
     private int mTextSize;
@@ -61,9 +77,15 @@ public class TimeProgressView extends View {
     private Rect mBound;
     private Paint mPaint;
     /**
-     * 绘制时控制文本绘制的范围
+     * 是否在加载中
+     */
+    private boolean isLoading = true;
+    /**
+     * 绘制控制
      */
     private boolean isDraw = true;
+
+    private int speed = 100;
 
     private static final int DEFAULT_TOTAL_TIME = 0;
     private static final int DEFAULT_CURRENT_TIME = 0;
@@ -72,10 +94,13 @@ public class TimeProgressView extends View {
     private static final int DEFAULT_BGCOLOR = Color.BLACK;
     private static final int DEFAULT_STARTCOLOR = Color.WHITE;
     private static final int DEFAULT_ENDCOLOR = Color.YELLOW;
+    private static final int DEFAULT_LOADINGSTARTCOLOR = Color.WHITE;
+    private static final int DEFAULT_LOADINGENDCOLOR = Color.BLACK;
     private static final int DEFAULT_PADDINGBOTTOM = 13; //dp
     private static final int DEFAULT_PADDINGTOP = 13; //dp
     private static final int DEFAULT_PADDINGLEFT = 18; //dp
     private static final int DEFAULT_PADDINGRIGHT = 18; //dp
+    private int  DEFAULT_STARTANDLE = 30;
 
     /*
     初始位置
@@ -104,6 +129,7 @@ public class TimeProgressView extends View {
         mTextColor = a.getColor(R.styleable.TimeProgressView_textColor, DEFAULT_COLOR);
         mLineStartColor = a.getColor(R.styleable.TimeProgressView_lineStartColor, DEFAULT_STARTCOLOR);
         mLineEndColor =  a.getColor(R.styleable.TimeProgressView_lineEndColor, DEFAULT_ENDCOLOR);
+        mLoadingColor =  a.getColor(R.styleable.TimeProgressView_loadingColor, DEFAULT_LOADINGENDCOLOR);
         mTextSize = a.getDimensionPixelSize(R.styleable.TimeProgressView_textSize,
                 (int) TypedValue.applyDimension(
                         TypedValue.COMPLEX_UNIT_SP,
@@ -115,7 +141,6 @@ public class TimeProgressView extends View {
          * 获得绘制文本的宽和高
          */
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        ;
         mPaint.setTextSize(mTextSize);
 
         threadDraw();
@@ -132,7 +157,7 @@ public class TimeProgressView extends View {
                     postInvalidate();
 
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(speed);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -150,7 +175,14 @@ public class TimeProgressView extends View {
     private void changePosition() {
         if (mBound != null) {
             if (mCurrentTime <= mTotalTime) {
-                position = (getMeasuredWidth() - (mBound.width() + DEFAULT_PADDINGLEFT + DEFAULT_PADDINGRIGHT)) * (mCurrentTime) / mTotalTime;
+                if (isLoading){
+                    position = (getMeasuredWidth() - (mBound.width() + mBound.height()
+                            + DEFAULT_PADDINGLEFT *2+ DEFAULT_PADDINGRIGHT)) * (int) (mCurrentTime) / mTotalTime;
+                }else {
+                  position = (getMeasuredWidth() - (mBound.width() + DEFAULT_PADDINGLEFT
+                          + DEFAULT_PADDINGRIGHT)) * (int) (mCurrentTime) / mTotalTime;
+                }
+
             }
         }
 
@@ -169,39 +201,50 @@ public class TimeProgressView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+
         drawBg(canvas);
         drawText(canvas);
         drawLine(canvas);
+        if (isLoading){
+            drawLoading(canvas);
+        }
+
 
     }
 
 
     private void drawText(Canvas canvas) {
         //画时间文字
+        mPaint.reset();
+        mPaint.setTextSize(mTextSize);
         int viewHeight = getMeasuredHeight();
         Paint.FontMetrics fontMetrics = mPaint.getFontMetrics();
-        int x = position + DEFAULT_PADDINGLEFT;
+        int x;
+        if (isLoading){
+            x = position + DEFAULT_PADDINGLEFT *2+ mBound.height();
+        }else {
+            x =  position + DEFAULT_PADDINGLEFT;
+        }
+
         int y = (int) (viewHeight / 2 +
                 (fontMetrics.descent - fontMetrics.ascent) / 2
                 - fontMetrics.descent);
         mPaint.setColor(mTextColor);
-        canvas.drawText(intToTime(mCurrentTime) + "/" + intToTime(mTotalTime), x, y, mPaint);
+        canvas.drawText(intToTime((int) mCurrentTime) + "/" + intToTime(mTotalTime), x, y, mPaint);
 
 
         if (mCurrentTime < mTotalTime) {
             //当前时间递加*
-            mCurrentTime++;
+            mCurrentTime = mCurrentTime + 0.1f;
             if (mCurrentTime == 600) {
 
                 //刷新大小及界面
                 requestLayout();
             }
-          if (isDraw ==false){
-              setDraw(isDraw);
-                isDraw=!isDraw;
-                setDraw(isDraw);
-          }
         } else {
+            if (mCurrentTime == mTotalTime){
+                requestLayout();
+            }
             isDraw = false;
         }
 
@@ -209,14 +252,28 @@ public class TimeProgressView extends View {
 
     private void drawBg(Canvas canvas) {
         //画时间背景
+        mPaint.reset();
+        mPaint.setTextSize(mTextSize);
         mPaint.setColor(mBgColor);
         mPaint.setStyle(Paint.Style.FILL);
         int viewHeight = getMeasuredHeight();
-        if (position + mBound.width()> getMeasuredWidth()){
-            //对控件位置进行控制
-            position = getMeasuredWidth() -mBound.width()- DEFAULT_PADDINGRIGHT -DEFAULT_PADDINGLEFT;
+        RectF ovalRect;
+        if (isLoading){
+            if (position + mBound.width()+mBound.height()+ DEFAULT_PADDINGLEFT*2 +DEFAULT_PADDINGRIGHT> getMeasuredWidth()){
+                //对控件位置进行控制
+                position = getMeasuredWidth() -mBound.width()- DEFAULT_PADDINGRIGHT -DEFAULT_PADDINGLEFT- DEFAULT_PADDINGLEFT - mBound.height();
+
+            }
+            ovalRect = new RectF(position, 0,
+                    mBound.width() + DEFAULT_PADDINGLEFT *2 + DEFAULT_PADDINGRIGHT + position+ mBound.height(),
+                    viewHeight);
+        }else {
+            if (position + mBound.width()+ DEFAULT_PADDINGRIGHT +DEFAULT_PADDINGLEFT> getMeasuredWidth()){
+                position = getMeasuredWidth() -mBound.width()- DEFAULT_PADDINGRIGHT -DEFAULT_PADDINGLEFT;
+            }
+            ovalRect = new RectF(position, 0, mBound.width() + DEFAULT_PADDINGLEFT + DEFAULT_PADDINGRIGHT + position, viewHeight);
         }
-        RectF ovalRect = new RectF(position, 0, mBound.width() + DEFAULT_PADDINGLEFT + DEFAULT_PADDINGRIGHT + position, viewHeight);
+
         canvas.drawRoundRect(ovalRect, viewHeight / 2, viewHeight / 2, mPaint);
     }
 
@@ -234,13 +291,37 @@ public class TimeProgressView extends View {
         canvas.drawLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y,linePaint);
 
     }
+
+    private void drawLoading(Canvas canvas){
+        //画加载中
+        mPaint.setColor(mLoadingColor);
+        mPaint.setStrokeWidth(getMeasuredHeight()/12);
+        mPaint.setStyle(Paint.Style.STROKE);
+//        SweepGradient sg = new SweepGradient(position +DEFAULT_PADDINGLEFT + mBound.height()/2,DEFAULT_PADDINGTOP + mBound.height()/2,
+//                DEFAULT_LOADINGSTARTCOLOR,DEFAULT_LOADINGENDCOLOR);
+//        mPaint.setShader(sg);
+ //       mMatrix.setRotate(mRotate,position +DEFAULT_PADDINGLEFT + mBound.height()/2,DEFAULT_PADDINGTOP + mBound.height()/2);
+//        sg.setLocalMatrix(mMatrix);
+//        mRotate += 120;
+//        if (mRotate >= 360) {
+//            mRotate = 0;
+//        }
+//        canvas.drawCircle(position+ DEFAULT_PADDINGLEFT + mBound.height()/2,DEFAULT_PADDINGTOP + mBound.height()/2,
+//                mBound.height()/2,mPaint);
+        RectF rectF = new RectF(position +DEFAULT_PADDINGLEFT,DEFAULT_PADDINGTOP,position +mBound.height()+DEFAULT_PADDINGLEFT,
+                mBound.height()+DEFAULT_PADDINGTOP);
+        canvas.drawArc(rectF,DEFAULT_STARTANDLE ,300,false,mPaint);
+        DEFAULT_STARTANDLE = DEFAULT_STARTANDLE + 30;
+
+
+    }
     /**
      *
      */
     private Rect getTextRect() {
         mBound = new Rect();
         intToTime(mTotalTime);
-        text = intToTime(mCurrentTime) + "/" + intToTime(mTotalTime);
+        text = intToTime((int) mCurrentTime) + "/" + intToTime(mTotalTime);
         mPaint.getTextBounds(text, 0, text.length(), mBound);
         return mBound;
     }
@@ -293,12 +374,14 @@ public class TimeProgressView extends View {
         switch(event.getAction()){
             case MotionEvent.ACTION_DOWN:
                 setPosition(x);
+                setDraw(false);
                 break;
             case MotionEvent.ACTION_MOVE:
                 setPosition(x);
                 break;
             case MotionEvent.ACTION_UP:
                 setPosition(x);
+               setDraw(true);
                 break;
             default:
                 break;
@@ -312,9 +395,18 @@ public class TimeProgressView extends View {
 
     public void setPosition(int position) {
         this.position = position ;
-        if (position + mBound.width()< getMeasuredWidth()){
-            mCurrentTime = (int)((float)position / (getMeasuredWidth()- mBound.width()) * (float) mTotalTime);
+        if (isLoading){
+            if (position + mBound.width()+mBound.height()+ DEFAULT_PADDINGLEFT*2 +DEFAULT_PADDINGRIGHT< getMeasuredWidth()){
+                mCurrentTime = (int)((float)position / (getMeasuredWidth()- mBound.width()-mBound.height()
+                        - DEFAULT_PADDINGLEFT*2-DEFAULT_PADDINGRIGHT) * (float) mTotalTime);
+            }
+        }else {
+            if (position + mBound.width()+DEFAULT_PADDINGRIGHT + DEFAULT_PADDINGLEFT< getMeasuredWidth()){
+                mCurrentTime = (int)((float)position / (getMeasuredWidth()- mBound.width()
+                        -DEFAULT_PADDINGRIGHT - DEFAULT_PADDINGLEFT) * (float) mTotalTime);
+            }
         }
+
 
        postInvalidate();
 
@@ -366,5 +458,11 @@ public class TimeProgressView extends View {
     public void setmTextColor(int mTextColor) {
         this.mTextColor = mTextColor;
         postInvalidate();
+    }
+
+    public void setLoading(boolean loading) {
+        isLoading = loading;
+        changePosition();
+        requestLayout();
     }
 }
